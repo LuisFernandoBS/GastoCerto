@@ -1,0 +1,140 @@
+<template>
+    <div>
+        <button class="btn btn-primary w-100 rounded-4 py-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#formCadastroCompra" aria-controls="formCadastroCompra">
+            <i class="fa-solid fa-cart-plus me-1"></i>
+            Cadastro Gasto
+        </button>
+        <div class="offcanvas offcanvas-start text-bg-dark rounded-end-5" data-bs-backdrop="static" data-bs-theme="dark" tabindex="-1" id="formCadastroCompra" aria-labelledby="formCadastroCompraLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="formCadastroCompraLabel">Cadastro Gasto</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <form @submit.prevent class="row g-3">
+                    <div class="col-12">
+                        <label for="descricaoGasto" class="form-label">Descrição</label>
+                        <input type="text" class="form-control" id="descricaoGasto" v-model="descricao" required>
+                    </div>
+                    <div class="col-sm-12 col-md-8">
+                        <label for="formaPagamento" class="form-label">Forma do pagamento</label>
+                        <select class="form-select" id="formaPagamento" v-model="formaPagamento" required>
+                            <option selected disabled value="">Selecione uma forma de pagamento...</option>
+                            <option v-for="(forma, index) in opcoesPagamento" :key="index" :value="forma.valor">{{forma.nome}}</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-4" v-if="formaPagamento === 'CP'">
+                        <label for="qtdParcelas" class="form-label">Qtd. Parcelas</label>
+                        <input type="number" class="form-control" id="qtdParcelas" v-model="qtdParcelas" required>
+                    </div>
+                    <div class="col-sm-12 col-md-8">
+                        <label for="statusPagamento" class="form-label">Status atual do pagamento</label>
+                        <select class="form-select" id="statusPagamento" v-model="statusPagamento" required>
+                            <option selected disabled value="">Selecione o status atual do pagamento...</option>
+                            <option v-for="(forma, index) in opcoesStatusPagamento" :key="index" :value="forma.valor">{{forma.nome}}</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-12 col-md-4">
+                        <label for="dataGasto" class="form-label">Data</label>
+                        <VDatePicker v-model="data" is-dark="true" color="yellow" borderless locale="pt-BR">
+                            <template #default="{ inputValue, inputEvents }">
+                                <input id="dataGasto" class="form-control" :value="inputValue" v-on="inputEvents" />
+                            </template>
+                        </VDatePicker>
+                    </div>                    
+                    <div class="col-sm-12 col-md-6">
+                        <label for="valorTotal" class="form-label">Valor Total</label>
+                        <input v-model="valor" v-money="moneyOptions" class="form-control" id="valorTotal" required>
+                    </div>
+                    <div class="col-12">
+                        <button class="btn btn-primary" @click="salvarGasto">Salvar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</template>
+
+<script setup lang="ts">
+    import { ref, getCurrentInstance, onMounted } from "vue";
+
+    let globals: any = null;
+
+    onMounted(() => {
+        const instance = getCurrentInstance()!;
+        globals = instance.proxy?.$globals;
+    });
+
+
+    const descricao = ref('');
+    const formaPagamento = ref('');
+    const qtdParcelas = ref(2);
+    const statusPagamento = ref('');
+    const valor = ref('');
+    const data = ref(new Date());
+
+    const opcoesPagamento = ref([
+        {nome:"Cartão Credito - À vista", valor:"C"},
+        {nome:"Cartão Parcelado", valor:"CP"},
+        {nome:"Cartão Debito", valor:"CD"},
+        {nome:"Dinheiro", valor:"D"},
+    ]);
+
+    const opcoesStatusPagamento = ref([
+        {nome:"Pago", valor:"Pago"},
+        {nome:"Pendete", valor:"Pendete"},
+        {nome:"Em andamento", valor:"Em andamento"},
+    ]);
+
+    const moneyOptions = {
+        precision: 2,
+        decimal: ',',
+        thousands: '.',
+        prefix: 'R$',
+        suffix: '',
+        masked: false
+    }
+
+
+    async function salvarGasto(){
+        if (!globals) {
+            console.error("Funções Globais não disponível");
+            return;
+        }
+        
+        const dataFormatada = globals.formatarDataBR(data.value);
+        const valorFormatado = globals.converteMoedaParaNumero(valor.value);
+
+        const dados = {
+            descricao: descricao.value,
+            valor: valorFormatado,
+            data_gasto: dataFormatada,
+            forma_pagamento: formaPagamento.value,
+            qtd_parcelas: formaPagamento.value === 'CP' ? qtdParcelas.value : "",
+            status_pagamento: statusPagamento.value,
+        };
+
+        fetch('http://localhost:3000/gastos', {
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json', 
+            },
+            body: JSON.stringify(dados),
+        })
+        .then(response => response.ok ? response.json() : Promise.reject(response))
+        .then(result => {
+            limparCampos();
+            console.log('Gasto cadastrado:', result);
+        })
+        .catch(error => console.error('Erro ao cadastrar gasto:', error));
+    }
+
+    function limparCampos(){
+        descricao.value = '';
+        formaPagamento.value = '';
+        qtdParcelas.value = 2;
+        statusPagamento.value = '';
+        valor.value = '';
+        data.value = new Date();
+    }
+
+</script>

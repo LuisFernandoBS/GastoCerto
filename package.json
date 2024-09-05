@@ -9,7 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "vue": "^3.4.37"
+    "@fortawesome/fontawesome-free": "^6.6.0",
+    "@popperjs/core": "^2.11.8",
+    "bootstrap": "^5.3.0-alpha3",
+    "v-calendar": "^3.1.2",
+    "v-money3": "^3.24.1",
+    "vue": "^3.4.37",
+    "vue-router": "^4.4.3",
+    "vue-the-mask": "^0.11.1"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.1.2",

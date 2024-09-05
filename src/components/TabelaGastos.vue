@@ -1,0 +1,95 @@
+<template>
+    <div class="div-tabela">
+        <table class="table table-dark table-hover mb-0">
+            <thead>
+                <tr>
+                    <th scope="col" class="ps-4">Data</th>
+                    <th scope="col">Descrição</th>
+                    <th scope="col">Forma de pagamento</th>
+                    <th scope="col">Qtd. Parcelas</th>
+                    <th scope="col">Valor Total</th>
+                    <th scope="col">Status Pagamento</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="(gasto, index) in listaGastos" :key="index">
+                    <td class="ps-4">{{gasto.data_gasto}}</td>
+                    <td>{{gasto.descricao}}</td>
+                    <td>{{retornaDescricaoFormaPagamento(gasto.forma_pagamento)}}</td>
+                    <td>{{gasto.qtd_parcelas ??"-"}}</td>
+                    <td>{{gasto.valor}}</td>
+                    <td>{{gasto.status_pagamento}}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</template>
+<script setup lang="ts">
+    import { ref, onMounted } from 'vue';
+    interface IGastos{
+        cod:number
+        data_cadastro?:string
+        data_gasto?:string
+        descricao:string
+        forma_pagamento?:string
+        qtd_parcelas?:number
+        valor?:number
+        status_pagamento?:string
+    }
+
+    let listaGastos = ref<Array<IGastos>>([]);
+
+    onMounted(() => {
+        requisicaoListaGastos();
+    })
+
+    function requisicaoListaGastos() {
+        fetch('http://localhost:3000/gastos')
+        .then(response => response.ok ? response.json() : Promise.reject(response))
+        .then(result => {
+            listaGastos.value = result;
+        })
+        .catch(error => console.error('Erro ao listar gastos:', error));
+    }
+
+    function retornaDescricaoFormaPagamento(sigla?:string):string {
+        let desc:string = "";
+        switch (sigla) {
+            case "C":
+                desc = "Cartão Credito - À vista";
+                break;
+            case "CP":
+                desc = "Cartão Parcelado";
+                break;
+            case "CD":
+                desc = "Cartão Debito";
+                break;
+            case "D":
+                desc = "Dinheiro";
+                break;
+            default:
+                break;
+            }
+        return desc;
+    }
+
+</script>
+<style>
+.table>:not(caption)>*>* {
+    background-color: #302d2d;
+}
+
+.table th {
+    color: #E1C005;
+}
+
+.table-hover>tbody>tr:hover>* {
+    --bs-table-accent-bg: #e1c00522;
+}
+
+.div-tabela{
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+</style>

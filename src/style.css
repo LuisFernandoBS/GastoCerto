@@ -25,7 +25,6 @@ a:hover {
 body {
   margin: 0;
   display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -54,15 +53,29 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.btn-primary{
+  background-color: rgb(225, 192, 5);
+  border-color: rgb(225, 192, 5);
+  font-weight: 600;
+  color: #373434;
+}
+
+.btn-primary:hover{
+  background-color: rgb(243, 209, 22);
+  border-color: rgb(243, 209, 22);
+  color: #373434;
+}
+
+.container-fluid{
+  background-color: #242222;
+ }
+
 .card {
   padding: 2em;
 }
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+.vc-container.vc-dark .vc-arrow,.vc-container.vc-dark .vc-title-wrapper button , .vc-nav-container button{
+  background: #0f172a;
 }
 
 @media (prefers-color-scheme: light) {
