@@ -1,16 +1,16 @@
 <template>
     <div>
-        <button class="btn btn-primary w-100 rounded-4 py-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#formCadastroCompra" aria-controls="formCadastroCompra">
+        <button class="btn btn-primary w-100 rounded-4 py-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#modalCadastroCompra" aria-controls="modalCadastroCompra" @click="limparCampos">
             <i class="fa-solid fa-cart-plus me-1"></i>
             Cadastro Gasto
         </button>
-        <div class="offcanvas offcanvas-start text-bg-dark rounded-end-5" data-bs-backdrop="static" data-bs-theme="dark" tabindex="-1" id="formCadastroCompra" aria-labelledby="formCadastroCompraLabel">
+        <div class="offcanvas offcanvas-start text-bg-dark rounded-end-5" data-bs-backdrop="static" data-bs-theme="dark" tabindex="-1" id="modalCadastroCompra" aria-labelledby="modalCadastroCompraLabel">
             <div class="offcanvas-header">
-                <h5 class="offcanvas-title" id="formCadastroCompraLabel">Cadastro Gasto</h5>
+                <h5 class="offcanvas-title" id="modalCadastroCompraLabel">Cadastro Gasto</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body">
-                <form @submit.prevent class="row g-3">
+                <form id="formCadastroGasto" @submit.prevent class="row g-3">
                     <div class="col-12">
                         <label for="descricaoGasto" class="form-label">Descrição</label>
                         <input type="text" class="form-control" id="descricaoGasto" v-model="descricao" required>
@@ -56,12 +56,26 @@
 
 <script setup lang="ts">
     import { ref, getCurrentInstance, onMounted } from "vue";
+    import { Offcanvas } from 'bootstrap';
 
     let globals: any = null;
+    let instanciaModal: any = null;
+    let form: any = null;
+    let valorTotalInput: any = null;
 
+    
     onMounted(() => {
         const instance = getCurrentInstance()!;
         globals = instance.proxy?.$globals;
+        
+        form = document.querySelector('#formCadastroGasto');
+        valorTotalInput = document.getElementById('valorTotal') ;
+
+
+        const offcanvasElement = document.getElementById('modalCadastroCompra');
+        if (offcanvasElement) {
+            instanciaModal = new Offcanvas(offcanvasElement);
+        } 
     });
 
 
@@ -91,6 +105,7 @@
         thousands: '.',
         prefix: 'R$',
         suffix: '',
+        allowBlank: true,
         masked: false
     }
 
@@ -98,6 +113,10 @@
     async function salvarGasto(){
         if (!globals) {
             console.error("Funções Globais não disponível");
+            return;
+        }
+
+        if (validarCamposModal()) {
             return;
         }
         
@@ -109,7 +128,7 @@
             valor: valorFormatado,
             data_gasto: dataFormatada,
             forma_pagamento: formaPagamento.value,
-            qtd_parcelas: formaPagamento.value === 'CP' ? qtdParcelas.value : "",
+            qtd_parcelas: formaPagamento.value === 'CP' ? qtdParcelas.value : null,
             status_pagamento: statusPagamento.value,
         };
 
@@ -124,8 +143,27 @@
         .then(result => {
             limparCampos();
             console.log('Gasto cadastrado:', result);
+            instanciaModal.hide();
         })
         .catch(error => console.error('Erro ao cadastrar gasto:', error));
+    }
+
+    function validarCamposModal(){
+        let campoInvalido = false;
+
+        campoInvalido = descricao.value.trim() ? false : true;
+        campoInvalido = data.value ? campoInvalido : true;
+        campoInvalido = formaPagamento.value.trim() ? campoInvalido : true;
+        campoInvalido = statusPagamento.value.trim() ? campoInvalido : true;
+        campoInvalido = valor.value.trim() ? campoInvalido : true;
+
+        if(formaPagamento.value === 'CP'){
+            campoInvalido = qtdParcelas.value ? campoInvalido : true;
+        }
+
+        form && form.classList.add('was-validated');        
+
+        return campoInvalido
     }
 
     function limparCampos(){
@@ -135,6 +173,10 @@
         statusPagamento.value = '';
         valor.value = '';
         data.value = new Date();
+        if (form) {
+            form.reset();
+            form.classList.remove('was-validated');
+        }
     }
 
 </script>
