@@ -57,6 +57,9 @@
 <script setup lang="ts">
     import { ref, getCurrentInstance, onMounted } from "vue";
     import { Offcanvas } from 'bootstrap';
+    import { useToastStore } from '../stores/toastStore';
+
+    const toastStore = useToastStore();
 
     let globals: any = null;
     let instanciaModal: any = null;
@@ -115,6 +118,8 @@
             console.error("Funções Globais não disponível");
             return;
         }
+        toastStore.dispararMsg('Gasto cadastrado', `Gasto "${descricao.value}" cadastrado com Sucesso!`, 'success', 50000);
+        
 
         if (validarCamposModal()) {
             return;
@@ -144,6 +149,7 @@
             limparCampos();
             console.log('Gasto cadastrado:', result);
             instanciaModal.hide();
+            toastStore.dispararMsg('Gasto cadastrado', `Gasto "${descricao.value}" cadastrado com Sucesso!`, 'success', 5000);
         })
         .catch(error => console.error('Erro ao cadastrar gasto:', error));
     }
