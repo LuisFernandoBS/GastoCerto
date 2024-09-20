@@ -56,10 +56,13 @@
 
 <script setup lang="ts">
     import { ref, getCurrentInstance, onMounted } from "vue";
-    import { Offcanvas } from 'bootstrap';
+    import * as bootstrap from 'bootstrap';
     import { useToastStore } from '../stores/toastStore';
+    import { useTabelaGastosStore } from '../stores/tabelaGastosStore';
+    import { unformat } from 'v-money3';
 
     const toastStore = useToastStore();
+    const tabelaGastosStore = useTabelaGastosStore();
 
     let globals: any = null;
     let instanciaModal: any = null;
@@ -74,11 +77,7 @@
         form = document.querySelector('#formCadastroGasto');
         valorTotalInput = document.getElementById('valorTotal') ;
 
-
-        const offcanvasElement = document.getElementById('modalCadastroCompra');
-        if (offcanvasElement) {
-            instanciaModal = new Offcanvas(offcanvasElement);
-        } 
+        instanciaModal = new bootstrap.Offcanvas('#modalCadastroCompra');        
     });
 
 
@@ -106,27 +105,26 @@
         precision: 2,
         decimal: ',',
         thousands: '.',
-        prefix: 'R$',
+        prefix: 'R$ ',
         suffix: '',
         allowBlank: true,
-        masked: false
+        masked: true
     }
 
 
     async function salvarGasto(){
+
         if (!globals) {
             console.error("Funções Globais não disponível");
             return;
-        }
-        toastStore.dispararMsg('Gasto cadastrado', `Gasto "${descricao.value}" cadastrado com Sucesso!`, 'success', 50000);
-        
+        }        
 
         if (validarCamposModal()) {
             return;
         }
         
         const dataFormatada = globals.formatarDataBR(data.value);
-        const valorFormatado = globals.converteMoedaParaNumero(valor.value);
+        const valorFormatado = unformat(valor.value);
 
         const dados = {
             descricao: descricao.value,
@@ -137,7 +135,7 @@
             status_pagamento: statusPagamento.value,
         };
 
-        fetch('http://localhost:3000/gastos', {
+        fetch('https://gasto-certo-ws.vercel.app/api/v1/gasto/', {
             method: 'POST', 
             headers: {
                 'Content-Type': 'application/json', 
@@ -149,6 +147,7 @@
             limparCampos();
             console.log('Gasto cadastrado:', result);
             instanciaModal.hide();
+            tabelaGastosStore.atualizarTabelaGastos();
             toastStore.dispararMsg('Gasto cadastrado', `Gasto "${descricao.value}" cadastrado com Sucesso!`, 'success', 5000);
         })
         .catch(error => console.error('Erro ao cadastrar gasto:', error));

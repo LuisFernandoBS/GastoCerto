@@ -10,9 +10,11 @@ export function formatarDataBR(stringData: Date):string {
     return "";
 }
 
-export function converteMoedaParaNumero(valor: string):number {
-    valor = valor.replace('R$', '').replace('.', '').replace(',', '.');
-
-    const valorNumeral = parseFloat(valor); 
-    return valorNumeral;
+export function converteMoedaParaNumero(valor: string):string {
+    // valor = valor.replace('R$', '').replace('.', '').replace(',', '.');
+    valor = valor.replace('R$', '').trim();
+    valor = valor.replace(/\./g, '').replace(',', '.');
+    
+    const valorNumeral = parseFloat(valor);
+    return valorNumeral.toFixed(2);
 }

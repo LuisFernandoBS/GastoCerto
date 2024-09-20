@@ -68,7 +68,15 @@ button:focus-visible {
 
 .container-fluid{
   background-color: #242222;
- }
+}
+
+.bg-padrao{
+  background-color: #242222;
+}
+
+.text-amarelo-padrao{
+  color: rgb(225, 192, 5);
+}
 
 .card {
   padding: 2em;

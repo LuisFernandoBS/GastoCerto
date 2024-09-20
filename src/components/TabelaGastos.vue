@@ -9,6 +9,7 @@
                     <th scope="col">Qtd. Parcelas</th>
                     <th scope="col">Valor Total</th>
                     <th scope="col">Status Pagamento</th>
+                    <th scope="col" class="text-center">Deletar</th>
                 </tr>
             </thead>
             <tbody>
@@ -17,15 +18,21 @@
                     <td>{{gasto.descricao}}</td>
                     <td>{{retornaDescricaoFormaPagamento(gasto.forma_pagamento)}}</td>
                     <td>{{gasto.qtd_parcelas ??"-"}}</td>
-                    <td>{{gasto.valor}}</td>
+                    <td>{{gasto.valorFormatado}}</td>
                     <td>{{gasto.status_pagamento}}</td>
+                    <td class="text-center"><BotaoDeletaGasto :cod-gasto="gasto.cod" :descricao-gasto="gasto.descricao" /></td>
                 </tr>
             </tbody>
         </table>
     </div>
 </template>
 <script setup lang="ts">
-    import { ref, onMounted } from 'vue';
+    import { ref, onMounted, watch } from 'vue';
+    import BotaoDeletaGasto from '../components/BotaoDeletaGasto.vue';
+    import { storeToRefs } from 'pinia'
+    import { useTabelaGastosStore } from '../stores/tabelaGastosStore';
+    import { format } from 'v-money3';
+    
     interface IGastos{
         cod:number
         data_cadastro?:string
@@ -35,21 +42,44 @@
         qtd_parcelas?:number
         valor?:number
         status_pagamento?:string
+        valorFormatado?:string
     }
 
     let listaGastos = ref<Array<IGastos>>([]);
+
+    const tabelaGastosStore = useTabelaGastosStore();
+    let { atualizarTabela } = storeToRefs(tabelaGastosStore);
+
+    const moneyOptions = {
+        precision: 2,
+        decimal: ',',
+        thousands: '.',
+        prefix: 'R$ ',
+        suffix: '',
+        allowBlank: true,
+        masked: true
+    }
 
     onMounted(() => {
         requisicaoListaGastos();
     })
 
     function requisicaoListaGastos() {
-        fetch('http://localhost:3000/gastos')
+        fetch('https://gasto-certo-ws.vercel.app/api/v1/gasto/')
         .then(response => response.ok ? response.json() : Promise.reject(response))
         .then(result => {
-            listaGastos.value = result;
+            if(result.data.length){
+                listaGastos.value = result.data.map((gasto:IGastos) => {
+                    gasto.valorFormatado = format(gasto.valor,moneyOptions);
+                    return gasto;
+                });
+            }
         })
-        .catch(error => console.error('Erro ao listar gastos:', error));
+        .catch(error => console.error('Erro ao listar gastos:', error))
+        .finally(() => {
+            tabelaGastosStore.atualizarTabelaGastos(false);
+        });
+        ;
     }
 
     function retornaDescricaoFormaPagamento(sigla?:string):string {
@@ -72,6 +102,10 @@
             }
         return desc;
     }
+
+    watch(atualizarTabela, async (newStatus) => {
+        newStatus && requisicaoListaGastos();
+    })
 
 </script>
 <style>
