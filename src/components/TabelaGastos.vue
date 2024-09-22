@@ -9,6 +9,7 @@
                     <th scope="col">Qtd. Parcelas</th>
                     <th scope="col">Valor Total</th>
                     <th scope="col">Status Pagamento</th>
+                    <th scope="col">Categoria</th>
                     <th scope="col" class="text-center">Deletar</th>
                 </tr>
             </thead>
@@ -20,6 +21,7 @@
                     <td>{{gasto.qtd_parcelas ??"-"}}</td>
                     <td>{{gasto.valorFormatado}}</td>
                     <td>{{gasto.status_pagamento}}</td>
+                    <td>{{gasto.nome_categoria}}</td>
                     <td class="text-center"><BotaoDeletaGasto :cod-gasto="gasto.cod" :descricao-gasto="gasto.descricao" /></td>
                 </tr>
             </tbody>
@@ -41,6 +43,8 @@
         forma_pagamento?:string
         qtd_parcelas?:number
         valor?:number
+        cod_categoria?:number
+        nome_categoria?:string
         status_pagamento?:string
         valorFormatado?:string
     }

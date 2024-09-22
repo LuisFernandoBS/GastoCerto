@@ -42,6 +42,9 @@
                         </VDatePicker>
                     </div>                    
                     <div class="col-sm-12 col-md-6">
+                        <SelectCategoriaGasto @setar-valor-select="(valor:number) => categoria = valor"/>
+                    </div>
+                    <div class="col-sm-12 col-md-6">
                         <label for="valorTotal" class="form-label">Valor Total</label>
                         <input v-model="valor" v-money="moneyOptions" class="form-control" id="valorTotal" required>
                     </div>
@@ -60,6 +63,7 @@
     import { useToastStore } from '../stores/toastStore';
     import { useTabelaGastosStore } from '../stores/tabelaGastosStore';
     import { unformat } from 'v-money3';
+    import SelectCategoriaGasto from './SelectCategoriaGasto.vue';
 
     const toastStore = useToastStore();
     const tabelaGastosStore = useTabelaGastosStore();
@@ -67,7 +71,6 @@
     let globals: any = null;
     let instanciaModal: any = null;
     let form: any = null;
-    let valorTotalInput: any = null;
 
     
     onMounted(() => {
@@ -75,8 +78,6 @@
         globals = instance.proxy?.$globals;
         
         form = document.querySelector('#formCadastroGasto');
-        valorTotalInput = document.getElementById('valorTotal') ;
-
         instanciaModal = new bootstrap.Offcanvas('#modalCadastroCompra');        
     });
 
@@ -86,6 +87,7 @@
     const qtdParcelas = ref(2);
     const statusPagamento = ref('');
     const valor = ref('');
+    const categoria = ref<number|null>(null);
     const data = ref(new Date());
 
     const opcoesPagamento = ref([
@@ -111,7 +113,6 @@
         masked: true
     }
 
-
     async function salvarGasto(){
 
         if (!globals) {
@@ -122,6 +123,7 @@
         if (validarCamposModal()) {
             return;
         }
+       
         
         const dataFormatada = globals.formatarDataBR(data.value);
         const valorFormatado = unformat(valor.value);
@@ -131,6 +133,7 @@
             valor: valorFormatado,
             data_gasto: dataFormatada,
             forma_pagamento: formaPagamento.value,
+            cod_categoria: categoria.value,
             qtd_parcelas: formaPagamento.value === 'CP' ? qtdParcelas.value : null,
             status_pagamento: statusPagamento.value,
         };
@@ -158,6 +161,7 @@
 
         campoInvalido = descricao.value.trim() ? false : true;
         campoInvalido = data.value ? campoInvalido : true;
+        campoInvalido = categoria.value ? campoInvalido : true;
         campoInvalido = formaPagamento.value.trim() ? campoInvalido : true;
         campoInvalido = statusPagamento.value.trim() ? campoInvalido : true;
         campoInvalido = valor.value.trim() ? campoInvalido : true;
@@ -175,6 +179,7 @@
         descricao.value = '';
         formaPagamento.value = '';
         qtdParcelas.value = 2;
+        categoria.value = null;
         statusPagamento.value = '';
         valor.value = '';
         data.value = new Date();
